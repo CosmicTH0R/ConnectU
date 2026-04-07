@@ -1,0 +1,369 @@
+# ─────────────────────────────────────────────────────────────────────────────
+#  render.yaml — Render.com deployment config (free tier)
+#
+#  Free stack summary:
+#    • Node.js services  → Render Web Services (free, 750 hrs/month)
+#    • PostgreSQL        → Neon (free 0.5 GB)
+#    • MongoDB           → MongoDB Atlas M0 (free 512 MB)
+#    • Redis             → Upstash Redis (free 10K cmds/day)
+#    • Kafka             → Upstash Kafka (free 10K msgs/day)
+#    • Media/CDN         → Cloudinary (free 25 GB)
+#    • Search            → PostgreSQL Full-Text Search (tsvector + GIN)
+#
+#  NOTE: Free services spin down after 15 min of inactivity.
+#  For always-on behaviour upgrade to the $7/month Starter plan.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── API Gateway ─────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-api-gateway
+    runtime: node
+    rootDir: packages/api-gateway
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: JWT_SECRET
+        sync: false          # set manually in Render dashboard
+      - key: CORS_ORIGINS
+        sync: false
+      # Service discovery — fill after each service deploys
+      - key: USER_SERVICE_URL
+        sync: false
+      - key: POST_SERVICE_URL
+        sync: false
+      - key: FEED_SERVICE_URL
+        sync: false
+      - key: STORY_SERVICE_URL
+        sync: false
+      - key: CHAT_SERVICE_URL
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        sync: false
+      - key: MEDIA_SERVICE_URL
+        sync: false
+      - key: SEARCH_SERVICE_URL
+        sync: false
+      - key: RECOMMENDATION_SERVICE_URL
+        sync: false
+      - key: FEATURE_FLAG_SERVICE_URL
+        sync: false
+      - key: AB_TESTING_SERVICE_URL
+        sync: false
+
+  # ── User Service ─────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-user-svc
+    runtime: node
+    rootDir: packages/user-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3001"
+      - key: DATABASE_URL
+        sync: false          # Neon PostgreSQL connection string
+      - key: REDIS_URL
+        sync: false          # Upstash Redis URL
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USE_SASL
+        value: "true"
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: "15m"
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: "7d"
+
+  # ── Post Service ──────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-post-svc
+    runtime: node
+    rootDir: packages/post-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3002"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USE_SASL
+        value: "true"
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Feed Service ──────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-feed-svc
+    runtime: node
+    rootDir: packages/feed-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3003"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USE_SASL
+        value: "true"
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Story Service ─────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-story-svc
+    runtime: node
+    rootDir: packages/story-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3004"
+      - key: MONGO_URI
+        sync: false          # MongoDB Atlas M0 connection string
+      - key: REDIS_URL
+        sync: false
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USE_SASL
+        value: "true"
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Chat Service ──────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-chat-svc
+    runtime: node
+    rootDir: packages/chat-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3005"
+      - key: MONGO_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USE_SASL
+        value: "true"
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Notification Service ──────────────────────────────────────────────────────
+  - type: web
+    name: instagram-notification-svc
+    runtime: node
+    rootDir: packages/notification-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3006"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: KAFKA_BROKERS
+        sync: false
+      - key: KAFKA_USE_SASL
+        value: "true"
+      - key: KAFKA_SASL_USERNAME
+        sync: false
+      - key: KAFKA_SASL_PASSWORD
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Media Service ─────────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-media-svc
+    runtime: node
+    rootDir: packages/media-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3007"
+      - key: MEDIA_PROVIDER
+        value: cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: MAX_FILE_SIZE
+        value: "10485760"   # 10 MB
+
+  # ── Search Service ────────────────────────────────────────────────────────────
+  # Uses PostgreSQL Full-Text Search (tsvector + tsquery + GIN index)
+  # No Elasticsearch required — runs entirely on the Neon free DB.
+  - type: web
+    name: instagram-search-svc
+    runtime: node
+    rootDir: packages/search-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3008"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Recommendation Service ────────────────────────────────────────────────────
+  - type: web
+    name: instagram-recommendation-svc
+    runtime: node
+    rootDir: packages/recommendation-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3009"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── Feature Flag Service ──────────────────────────────────────────────────────
+  - type: web
+    name: instagram-feature-flag-svc
+    runtime: node
+    rootDir: packages/feature-flag-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3010"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── A/B Testing Service ───────────────────────────────────────────────────────
+  - type: web
+    name: instagram-ab-testing-svc
+    runtime: node
+    rootDir: packages/ab-testing-service
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3011"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+
+  # ── GraphQL Gateway ───────────────────────────────────────────────────────────
+  - type: web
+    name: instagram-graphql-gateway
+    runtime: node
+    rootDir: packages/graphql-gateway
+    buildCommand: npm install && npm run build
+    startCommand: node dist/index.js
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "4000"
+      - key: JWT_SECRET
+        sync: false
+      - key: USER_SERVICE_URL
+        sync: false
+      - key: POST_SERVICE_URL
+        sync: false
+      - key: FEED_SERVICE_URL
+        sync: false
+      - key: STORY_SERVICE_URL
+        sync: false
+      - key: CHAT_SERVICE_URL
+        sync: false
+      - key: NOTIFICATION_SERVICE_URL
+        sync: false
+      - key: MEDIA_SERVICE_URL
+        sync: false
