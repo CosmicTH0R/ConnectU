@@ -42,6 +42,10 @@ router.get('/media/:id', makeProxy(config.services.media));
 
 // ─── Protected routes (auth required) ────────────────────────────────────────
 
+// Post-service routes mounted under /users (must come before /users proxy to user-service)
+router.use('/users/me/saved',  authMiddleware, makeProxy(config.services.post));
+router.get('/users/:id/posts', authMiddleware, makeProxy(config.services.post));
+
 router.use('/users',           authMiddleware, makeProxy(config.services.user));
 router.use('/posts',           authMiddleware, makeProxy(config.services.post));
 router.use('/comments',        authMiddleware, makeProxy(config.services.post));
