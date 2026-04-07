@@ -1,0 +1,38 @@
+version: '3.9'
+
+# Development overrides — lighter resource limits, no Kibana/Nginx
+services:
+  postgres:
+    ports:
+      - '5432:5432'
+
+  mongodb:
+    ports:
+      - '27017:27017'
+
+  redis:
+    ports:
+      - '6379:6379'
+
+  elasticsearch:
+    environment:
+      - 'ES_JAVA_OPTS=-Xms256m -Xmx256m'
+    ports:
+      - '9200:9200'
+
+  kafka:
+    environment:
+      KAFKA_LOG_RETENTION_HOURS: 1
+
+  # Disable heavy dev tools in CI-like local dev
+  kibana:
+    profiles:
+      - tools
+
+  kafka-ui:
+    profiles:
+      - tools
+
+  nginx:
+    profiles:
+      - proxy
