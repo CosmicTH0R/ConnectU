@@ -1,0 +1,156 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POST_DATABASE_URL")
+}
+
+// ─── Post ──────────────────────────────────────────────────────────────────────
+
+model Post {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  caption      String?   @db.VarChar(2200)
+  mediaUrls    String[]
+  mediaType    MediaType
+  location     String?   @db.VarChar(255)
+  likeCount    Int       @default(0)
+  commentCount Int       @default(0)
+  saveCount    Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Full-text search vector (updated via trigger)
+  searchVector Unsupported("tsvector")?
+
+  // Relations
+  likes     Like[]
+  comments  Comment[]
+  saves     SavedPost[]
+  hashtags  PostHashtag[]
+  mentions  Mention[]
+
+  @@index([userId])
+  @@index([createdAt(sort: Desc)])
+  @@map("posts")
+}
+
+enum MediaType {
+  image
+  video
+}
+
+// ─── Like ─────────────────────────────────────────────────────────────────────
+
+model Like {
+  postId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([postId])
+  @@index([userId])
+  @@map("likes")
+}
+
+// ─── Comment ──────────────────────────────────────────────────────────────────
+
+model Comment {
+  id              String    @id @default(uuid()) @db.Uuid
+  postId          String    @db.Uuid
+  userId          String    @db.Uuid
+  text            String    @db.VarChar(2200)
+  parentCommentId String?   @db.Uuid
+  likeCount       Int       @default(0)
+  createdAt       DateTime  @default(now())
+
+  post          Post          @relation(fields: [postId],          references: [id], onDelete: Cascade)
+  parent        Comment?      @relation("CommentReplies", fields: [parentCommentId], references: [id], onDelete: Cascade)
+  replies       Comment[]     @relation("CommentReplies")
+  commentLikes  CommentLike[]
+  mentions      Mention[]
+
+  @@index([postId])
+  @@index([parentCommentId])
+  @@map("comments")
+}
+
+// ─── CommentLike ──────────────────────────────────────────────────────────────
+
+model CommentLike {
+  commentId String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  comment Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@id([commentId, userId])
+  @@index([commentId])
+  @@map("comment_likes")
+}
+
+// ─── Hashtag ──────────────────────────────────────────────────────────────────
+
+model Hashtag {
+  id        String        @id @default(uuid()) @db.Uuid
+  name      String        @unique @db.VarChar(100)
+  postCount Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  posts PostHashtag[]
+
+  @@index([name])
+  @@map("hashtags")
+}
+
+model PostHashtag {
+  postId    String   @db.Uuid
+  hashtagId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  post    Post    @relation(fields: [postId],    references: [id], onDelete: Cascade)
+  hashtag Hashtag @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, hashtagId])
+  @@map("post_hashtags")
+}
+
+// ─── SavedPost ────────────────────────────────────────────────────────────────
+
+model SavedPost {
+  userId    String   @db.Uuid
+  postId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId])
+  @@map("saved_posts")
+}
+
+// ─── Mention ─────────────────────────────────────────────────────────────────
+
+model Mention {
+  id              String   @id @default(uuid()) @db.Uuid
+  postId          String?  @db.Uuid
+  commentId       String?  @db.Uuid
+  mentionedUserId String   @db.Uuid
+  actorId         String   @db.Uuid
+  createdAt       DateTime @default(now())
+
+  post    Post?    @relation(fields: [postId],    references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([mentionedUserId])
+  @@index([postId])
+  @@map("mentions")
+}

@@ -88,6 +88,15 @@ export interface CommentEvent extends KafkaEventBase {
   };
 }
 
+export interface CommentDeletedEvent extends KafkaEventBase {
+  topic: 'post.comment.deleted';
+  payload: {
+    commentId: string;
+    postId: string;
+    deletedBy: string;
+  };
+}
+
 export interface MentionEvent extends KafkaEventBase {
   topic: 'post.mention';
   payload: {
@@ -189,6 +198,7 @@ export type KafkaEvent =
   | LikeEvent
   | UnlikeEvent
   | CommentEvent
+  | CommentDeletedEvent
   | MentionEvent
   | StoryCreatedEvent
   | StoryViewEvent
