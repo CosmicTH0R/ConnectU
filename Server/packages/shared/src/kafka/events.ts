@@ -166,6 +166,29 @@ export interface ReelViewEvent extends KafkaEventBase {
   };
 }
 
+// ─── Media events ─────────────────────────────────────────────────────────────
+
+export interface MediaUploadedEvent extends KafkaEventBase {
+  topic: 'media.uploaded';
+  payload: {
+    key: string;
+    userId: string;
+    mimeType: string;
+    originalUrl: string;
+    thumbnailUrl?: string;
+    mediumUrl?: string;
+    size: number;
+  };
+}
+
+export interface MediaDeletedEvent extends KafkaEventBase {
+  topic: 'media.deleted';
+  payload: {
+    key: string;
+    userId: string;
+  };
+}
+
 // ─── System events ────────────────────────────────────────────────────────────
 
 export interface RateLimitExceededEvent extends KafkaEventBase {
@@ -205,6 +228,8 @@ export type KafkaEvent =
   | StoryReactionEvent
   | MessageSentEvent
   | ReelViewEvent
+  | MediaUploadedEvent
+  | MediaDeletedEvent
   | RateLimitExceededEvent
   | FlagUpdatedEvent;
 
