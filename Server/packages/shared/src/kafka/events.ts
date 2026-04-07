@@ -140,6 +140,14 @@ export interface StoryReactionEvent extends KafkaEventBase {
   };
 }
 
+export interface StoryDeletedEvent extends KafkaEventBase {
+  topic: 'story.deleted';
+  payload: {
+    storyId: string;
+    userId: string;
+  };
+}
+
 // ─── Chat events ──────────────────────────────────────────────────────────────
 
 export interface MessageSentEvent extends KafkaEventBase {
@@ -226,6 +234,7 @@ export type KafkaEvent =
   | StoryCreatedEvent
   | StoryViewEvent
   | StoryReactionEvent
+  | StoryDeletedEvent
   | MessageSentEvent
   | ReelViewEvent
   | MediaUploadedEvent
